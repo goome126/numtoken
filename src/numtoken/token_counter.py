@@ -35,7 +35,10 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("repo", help="Path to a local git repository")
     parser.add_argument("--model", default=DEFAULT_MODEL, help="HF tokenizer id or local path")
+    parser.add_argument("--folders", action="store_true", help="Print per-folder counts (default)")
+    parser.add_argument("--files", action="store_true", help="Print per-file counts")
     args = parser.parse_args()
+    show_folders = args.folders or not args.files
 
     repo = os.path.abspath(args.repo)
     if not os.path.exists(os.path.join(repo, ".git")):
@@ -66,13 +69,15 @@ def main() -> int:
             dir_counts[parent] = dir_counts.get(parent, 0) + n
             parent = os.path.dirname(parent)
 
-    print("\nTokens per folder:")
-    for d, n in sorted(dir_counts.items()):
-        print(f"{n:>10}  {d}/")
+    if show_folders:
+        print("\nTokens per folder:")
+        for d, n in sorted(dir_counts.items()):
+            print(f"{n:>10}  {d}/")
 
-    print("\nTokens per file:")
-    for f, n in sorted(file_counts.items()):
-        print(f"{n:>10}  {f}")
+    if args.files:
+        print("\nTokens per file:")
+        for f, n in sorted(file_counts.items()):
+            print(f"{n:>10}  {f}")
 
     print(f"\nFiles counted: {counted} (binary/unreadable skipped: {skipped})")
     print(f"Total tokens:  {total}")
